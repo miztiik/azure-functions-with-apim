@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "13874176132029943618"
+      "templateHash": "7265024332994647739"
     }
   },
   "parameters": {
@@ -693,7 +693,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "2778762596775634110"
+              "templateHash": "10760347734380123182"
             }
           },
           "parameters": {
@@ -719,7 +719,7 @@
             }
           },
           "variables": {
-            "$fxv#0": "import azure.functions as func\nimport logging\n\ndef main(req: func.HttpRequest) -> func.HttpResponse:\n    logging.info('Oye Python HTTP trigger function processed a request.')\n\n    name = req.params.get('name')\n    if not name:\n        try:\n            req_body = req.get_json()\n        except ValueError:\n            pass\n        else:\n            name = req_body.get('name')\n\n    if name:\n        return func.HttpResponse(f\"Hello, {name}. This HTTP triggered function executed successfully.\")\n    else:\n        return func.HttpResponse(\n             \"This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response.\",\n             status_code=200\n        )\n\n\n"
+            "$fxv#0": "import azure.functions as func\nimport logging\n\ndef main(req: func.HttpRequest) -> func.HttpResponse:\n    logging.info('Oye Python HTTP trigger function processed a request.')\n\n    name = req.params.get('name')\n    if not name:\n        try:\n            req_body = req.get_json()\n        except ValueError:\n            pass\n        else:\n            name = req_body.get('name')\n\n    if name:\n        return func.HttpResponse(f\"Hello, {name}. Found your name in Params.\")\n    else:\n        return func.HttpResponse(\n             \"This HTTP triggered function executed successfully.\",\n             status_code=200\n        )\n\n\n"
           },
           "resources": [
             {
@@ -854,6 +854,49 @@
               "properties": {
                 "Application_Type": "web",
                 "Request_Source": "rest"
+              }
+            },
+            {
+              "condition": "[parameters('enableDiagnostics')]",
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[format('Microsoft.Web/sites/{0}', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+              "name": "[format('{0}-logs-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)]",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logs": [
+                  {
+                    "category": "FunctionAppLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service",
+              "apiVersion": "2021-08-01",
+              "name": "[format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)]",
+              "location": "[parameters('deploymentParams').location]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Developer",
+                "capacity": 1
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "properties": {
+                "publisherEmail": "miztiik@github",
+                "publisherName": "miztiik"
               }
             }
           ]

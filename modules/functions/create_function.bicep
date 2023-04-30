@@ -161,34 +161,7 @@ resource r_fnApp 'Microsoft.Web/sites@2021-03-01' = {
 //   }
 // }
 
-// resource zipDeploy 'Microsoft.Web/sites/extensions@2021-02-01' = {
-//   parent: r_fnApp
-//   name: 'MSDeploy'
-//   properties: {
-//     packageUri: 'https://github.com/miztiik/azure-create-functions-with-bicep/raw/main/app/app7.zip'
-//   }
-// }
 
-
-// resource r_sayHello1 'Microsoft.Web/sites/functions@2022-03-01' = {
-//   name: '${funcParams.funcNamePrefix}-fn-${deploymentParams.global_uniqueness}'
-//   parent: r_fnApp
-//   properties: {
-//     config: any()
-//     config_href: 'string'
-//     files: {}
-//     function_app_id: 'string'
-//     href: 'string'
-//     invoke_url_template: 'string'
-//     isDisabled: false
-//     language: 'python'
-//     script_href: 'string'
-//     script_root_path_href: 'string'
-//     secrets_file_href: 'string'
-//     test_data: 'string'
-//     test_data_href: 'string'
-//   }
-// }
 
 resource r_helloFn 'Microsoft.Web/sites/functions@2022-03-01' = {
   name:  '${funcParams.funcNamePrefix}-fn-${deploymentParams.global_uniqueness}'
@@ -252,23 +225,42 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 
 
 // Enabling Diagnostics for the Function
+resource r_fnLogsToAzureMonitor 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (enableDiagnostics) {
+  name: '${funcParams.funcNamePrefix}-logs-${deploymentParams.global_uniqueness}'
+  scope: r_fnApp
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      {
+        category: 'FunctionAppLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
+}
 
-// resource fnLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (enableDiagnostics) {
-//   name: '${funcParams.funcNamePrefix}-logs-${deploymentParams.global_uniqueness}'
-//   scope: r_sa
-//   properties: {
-//     workspaceId: logAnalyticsWorkspaceId
-//     logs: [
-//       {
-//         category: 'StorageWrite'
-//         enabled: true
-//       }
-//     ]
-//     metrics: [
-//       {
-//         category: 'Transaction'
-//         enabled: true
-//       }
-//     ]
-//   }
-// }
+
+// Add API Management to the function
+
+resource r_apiMService 'Microsoft.ApiManagement/service@2021-08-01' = {
+  name: '${funcParams.funcNamePrefix}-api-${deploymentParams.global_uniqueness}'
+  location: deploymentParams.location
+  tags: tags
+  sku: {
+    name: 'Developer'
+    capacity: 1
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
+  properties: {
+    publisherEmail: 'miztiik@github'
+    publisherName: 'miztiik'
+  }
+}
