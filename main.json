@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "7265024332994647739"
+      "templateHash": "8500504300145215459"
     }
   },
   "parameters": {
@@ -693,7 +693,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "10760347734380123182"
+              "templateHash": "5544736434609850719"
             }
           },
           "parameters": {
@@ -716,10 +716,14 @@
             },
             "saName": {
               "type": "string"
+            },
+            "api_1_name": {
+              "type": "string",
+              "defaultValue": "store-events-producer"
             }
           },
           "variables": {
-            "$fxv#0": "import azure.functions as func\nimport logging\n\ndef main(req: func.HttpRequest) -> func.HttpResponse:\n    logging.info('Oye Python HTTP trigger function processed a request.')\n\n    name = req.params.get('name')\n    if not name:\n        try:\n            req_body = req.get_json()\n        except ValueError:\n            pass\n        else:\n            name = req_body.get('name')\n\n    if name:\n        return func.HttpResponse(f\"Hello, {name}. Found your name in Params.\")\n    else:\n        return func.HttpResponse(\n             \"This HTTP triggered function executed successfully.\",\n             status_code=200\n        )\n\n\n"
+            "$fxv#0": "import azure.functions as func\nimport os\nimport logging\n\ndef main(req: func.HttpRequest) -> func.HttpResponse:\n    logging.info('Oye Python HTTP trigger function processed a request.')\n    headers = {\"miztiik-automation-processed\": \"yes\"}\n    return func.HttpResponse(\"Miztiik Automation Function executed successfully.\", \n                                 headers=headers, \n                                 status_code=200\n                                 )\n\n\n"
           },
           "resources": [
             {
@@ -757,46 +761,31 @@
                 "siteConfig": {
                   "linuxFxVersion": "Python|3.10",
                   "ftpsState": "Disabled",
-                  "minTlsVersion": "1.2",
-                  "appSettings": [
-                    {
-                      "name": "AzureWebJobsStorage",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('saName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('saName')), '2021-06-01').keys[0].value)]"
-                    },
-                    {
-                      "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('saName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('saName')), '2021-06-01').keys[0].value)]"
-                    },
-                    {
-                      "name": "FUNCTIONS_WORKER_RUNTIME",
-                      "value": "python"
-                    },
-                    {
-                      "name": "FUNCTIONS_EXTENSION_VERSION",
-                      "value": "~4"
-                    },
-                    {
-                      "name": "SUBSCRIPTION_ID",
-                      "value": "[subscription().subscriptionId]"
-                    },
-                    {
-                      "name": "RESOURCE_GROUP",
-                      "value": "[resourceGroup().name]"
-                    },
-                    {
-                      "name": "WEBSITE_CONTENTSHARE",
-                      "value": "[toLower(parameters('funcParams').funcNamePrefix)]"
-                    },
-                    {
-                      "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                      "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2020-02-02').InstrumentationKey]"
-                    }
-                  ]
+                  "minTlsVersion": "1.2"
                 }
               },
               "dependsOn": [
-                "[resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
                 "[resourceId('Microsoft.Web/serverfarms', format('{0}-fnPlan-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Web/sites/config",
+              "apiVersion": "2021-03-01",
+              "name": "[format('{0}/{1}', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'appsettings')]",
+              "properties": {
+                "AzureWebJobsStorage": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('saName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('saName')), '2021-06-01').keys[0].value)]",
+                "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "[format('DefaultEndpointsProtocol=https;AccountName={0};EndpointSuffix={1};AccountKey={2}', parameters('saName'), environment().suffixes.storage, listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('saName')), '2021-06-01').keys[0].value)]",
+                "WEBSITE_CONTENTSHARE": "[toLower(parameters('funcParams').funcNamePrefix)]",
+                "APPINSIGHTS_INSTRUMENTATIONKEY": "[reference(resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2020-02-02').InstrumentationKey]",
+                "FUNCTIONS_WORKER_RUNTIME": "python",
+                "FUNCTIONS_EXTENSION_VERSION": "~4",
+                "SUBSCRIPTION_ID": "[subscription().subscriptionId]",
+                "RESOURCE_GROUP": "[resourceGroup().name]",
+                "DatabaseConnectionString": ""
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
               ]
             },
             {
@@ -898,8 +887,305 @@
                 "publisherEmail": "miztiik@github",
                 "publisherName": "miztiik"
               }
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/loggers",
+              "apiVersion": "2019-01-01",
+              "name": "[format('{0}/{1}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+              "properties": {
+                "loggerType": "applicationInsights",
+                "description": "Logger resources to APIM",
+                "credentials": {
+                  "instrumentationKey": "[reference(resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2020-02-02').InstrumentationKey]"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/diagnostics",
+              "apiVersion": "2022-08-01",
+              "name": "[format('{0}/{1}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'applicationinsights')]",
+              "properties": {
+                "loggerId": "[resourceId('Microsoft.ApiManagement/service/loggers', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "alwaysLog": "allErrors",
+                "logClientIp": true,
+                "httpCorrelationProtocol": "W3C",
+                "verbosity": "verbose",
+                "backend": {
+                  "request": {
+                    "body": {
+                      "bytes": 4096
+                    }
+                  },
+                  "response": {
+                    "body": {
+                      "bytes": 4096
+                    }
+                  }
+                },
+                "sampling": {
+                  "percentage": 89,
+                  "samplingType": "fixed"
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.ApiManagement/service/loggers', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "condition": "[parameters('enableDiagnostics')]",
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[format('Microsoft.ApiManagement/service/{0}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+              "name": "[format('{0}-api-mgmt-diagnostics-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)]",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logAnalyticsDestinationType": "Dedicated",
+                "logs": [
+                  {
+                    "category": "GatewayLogs",
+                    "enabled": true
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis",
+              "apiVersion": "2021-01-01-preview",
+              "name": "[format('{0}/{1}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness))]",
+              "properties": {
+                "displayName": "Store Event Producer API",
+                "apiRevision": "1",
+                "description": "Python based store events producer. Check out Github for more details",
+                "serviceUrl": "https://github.com/miztiik",
+                "path": "[format('{0}/{1}', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "isCurrent": true,
+                "subscriptionRequired": false,
+                "protocols": [
+                  "http",
+                  "https"
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites/functions', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/namedValues",
+              "apiVersion": "2021-12-01-preview",
+              "name": "[format('{0}/{1}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'rest-api-function-api-key')]",
+              "properties": {
+                "displayName": "rest-api-function-api-key",
+                "secret": true,
+                "value": "[listkeys(format('{0}/host/default', resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))), '2016-08-01').masterKey]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/backends",
+              "apiVersion": "2021-12-01-preview",
+              "name": "[format('{0}/{1}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'store-events-producer-function')]",
+              "properties": {
+                "description": "Store events producer function app",
+                "url": "[format('https://{0}.azurewebsites.net/api/{1}', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "protocol": "http",
+                "resourceId": "[format('{0}{1}', environment().resourceManager, resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)))]",
+                "credentials": {
+                  "query": {},
+                  "header": {
+                    "x-functions-key": [
+                      "[format('{{{{{0}}}}}', 'rest-api-function-api-key')]"
+                    ]
+                  }
+                },
+                "tls": {
+                  "validateCertificateChain": true,
+                  "validateCertificateName": true
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/namedValues', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'rest-api-function-api-key')]",
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites/functions', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis/operations",
+              "apiVersion": "2021-12-01-preview",
+              "name": "[format('{0}/{1}/{2}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount')]",
+              "properties": {
+                "displayName": "/default_event_count - Default Events Count",
+                "method": "GET",
+                "urlTemplate": "/",
+                "description": "Provides capability to get detailed about a specific deprecation",
+                "responses": [
+                  {
+                    "statusCode": 200,
+                    "description": "Success - Payload of Store Events Structure",
+                    "representations": [
+                      {
+                        "contentType": "application/json",
+                        "examples": {
+                          "default": {
+                            "value": {
+                              "storeId": 0,
+                              "firstName": "string",
+                              "lastName": "string",
+                              "loyaltyId": "string",
+                              "orderItems": [
+                                {
+                                  "productId": 0,
+                                  "quantity": 0
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "typeName": "deprecationInfo"
+                      }
+                    ],
+                    "headers": []
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis/operations",
+              "apiVersion": "2021-12-01-preview",
+              "name": "[format('{0}/{1}/{2}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'post-order')]",
+              "properties": {
+                "displayName": "/trigger - Initiate Order Generation",
+                "description": "Provides ability to request \"N-count\" of events",
+                "method": "POST",
+                "urlTemplate": "/trigger/{count}",
+                "templateParameters": [
+                  {
+                    "name": "count",
+                    "description": "The unique ID of the deprecation.",
+                    "type": "string",
+                    "required": true,
+                    "values": []
+                  }
+                ],
+                "request": {
+                  "representations": [
+                    {
+                      "contentType": "application/json",
+                      "examples": {
+                        "default": {
+                          "value": {
+                            "storeId": 0,
+                            "firstName": "string",
+                            "lastName": "string",
+                            "loyaltyId": "string",
+                            "orderItems": [
+                              {
+                                "productId": 0,
+                                "quantity": 0
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "contentType": "text/json",
+                      "examples": {
+                        "default": {
+                          "value": {
+                            "storeId": 0,
+                            "firstName": "string",
+                            "lastName": "string",
+                            "loyaltyId": "string",
+                            "orderItems": [
+                              {
+                                "productId": 0,
+                                "quantity": 0
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "responses": [
+                  {
+                    "statusCode": 200,
+                    "description": "Success"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/apis', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ApiManagement/service/apis/operations/policies",
+              "apiVersion": "2021-04-01-preview",
+              "name": "[format('{0}/{1}/{2}/{3}', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount', 'policy')]",
+              "properties": {
+                "format": "rawxml",
+                "value": "[format('<policies><inbound><set-backend-service id=\"apim-generated-policy\" backend-id=\"{0}\" /></inbound><backend><forward-request /></backend><outbound /></policies>', 'store-events-producer-function')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.ApiManagement/service/backends', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), 'store-events-producer-function')]",
+                "[resourceId('Microsoft.ApiManagement/service/apis/operations', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount')]"
+              ]
             }
-          ]
+          ],
+          "outputs": {
+            "fnName": {
+              "type": "string",
+              "value": "[format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)]"
+            },
+            "fnIdentity": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2021-03-01', 'full').identity.principalId]"
+            },
+            "apiMgmtId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+            },
+            "appInsightsInstrumentationKey": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', format('{0}-fnAppInsights-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2020-02-02').InstrumentationKey]"
+            },
+            "apiManagementURL": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2021-08-01').portalUrl]"
+            },
+            "ApiUrl": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.ApiManagement/service/apis/operations', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount'), '2021-12-01-preview').urlTemplate]"
+            },
+            "myApiUrl1": {
+              "type": "string",
+              "value": "[format('https://{0}/{1}/{2}', reference(resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))).properties.hostnameConfigurations[0].hostName, format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount')]"
+            }
+          }
         }
       },
       "dependsOn": [

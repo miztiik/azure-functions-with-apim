@@ -1,12 +1,8 @@
-# Create Azure Functions with Bicep
+# Build Azure Functions Frontend and Connect with APIM using Bicep
 
-A work in progress to deploy Azure Functions using Bicep with python runtime and inline code.
+A work in progress to deploy Azure Functions with APIM using Bicep with python runtime and inline code.
 
-```bash
-pushd app/function_code/; zip -r ../../app1.zip *; popd
-sh deploy.sh
-```
-
+![Miztiik Automation - Build Azure Functions Frontend and Connect with APIM using Bicep](images/miztiik_architecture_azure_functions_with_api_001.png)
 
 ### 💡 Help/Suggestions or 🐛 Bugs
 
@@ -28,6 +24,7 @@ Thank you for your interest in contributing to our project. Whether it is a bug 
 1. [Zip deployment for Azure Functions][7]
 1. [Azure Functions triggers and bindings concepts][8]
 1. [Deploy a Python (Django or Flask) web app to Azure App Service][9]
+1. [API Management policy expressions][10]
 
 
 [1]: https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference-python?pivots=python-mode-configuration&tabs=asgi%2Capplication-level#triggers-and-inputs
@@ -39,8 +36,7 @@ Thank you for your interest in contributing to our project. Whether it is a bug 
 [7]: https://learn.microsoft.com/en-us/azure/azure-functions/deployment-zip-push
 [8]: https://learn.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings?tabs=python
 [9]: https://learn.microsoft.com/en-us/azure/app-service/quickstart-python?tabs=flask%2Cmac-linux%2Cazure-cli%2Czip-deploy%2Cdeploy-instructions-azportal%2Cterminal-bash%2Cdeploy-instructions-zip-azcli
-
-
+[10]: https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions
 
 
 ### 🏷️ Metadata
