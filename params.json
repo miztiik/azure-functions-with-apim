@@ -5,7 +5,7 @@
     "deploymentParams": {
       "value": {
         "location": "westeurope",
-        "global_uniqueness": "006",
+        "global_uniqueness": "007",
         "enterprise_name": "Miztiik_Enterprises",
         "enterprise_name_suffix": "functions_with_apim",
         "sub_deploymnet_prefix": "Miztiik_Verse"

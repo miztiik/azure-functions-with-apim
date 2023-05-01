@@ -4,6 +4,19 @@ A work in progress to deploy Azure Functions with APIM using Bicep with python r
 
 ![Miztiik Automation - Build Azure Functions Frontend and Connect with APIM using Bicep](images/miztiik_architecture_azure_functions_with_api_001.png)
 
+```bash
+sh deploy.sh
+```
+
+Check the APIM service for the API url.
+
+Testing,
+```bash
+$ curl https://store-events-api-007.azure-api.net/
+Miztiik Automation Function executed successfully.
+```
+
+
 ### 💡 Help/Suggestions or 🐛 Bugs
 
 Thank you for your interest in contributing to our project. Whether it is a bug report, new feature, correction, or additional documentation or solutions, we greatly value feedback and contributions from our community. [Start here](/issues)

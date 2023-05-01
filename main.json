@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.16.2.56959",
-      "templateHash": "8500504300145215459"
+      "templateHash": "2003841625356679764"
     }
   },
   "parameters": {
@@ -693,7 +693,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.16.2.56959",
-              "templateHash": "5544736434609850719"
+              "templateHash": "13979461635316983593"
             }
           },
           "parameters": {
@@ -971,7 +971,7 @@
                 "apiRevision": "1",
                 "description": "Python based store events producer. Check out Github for more details",
                 "serviceUrl": "https://github.com/miztiik",
-                "path": "[format('{0}/{1}', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
+                "path": "/",
                 "isCurrent": true,
                 "subscriptionRequired": false,
                 "protocols": [
@@ -980,9 +980,7 @@
                 ]
               },
               "dependsOn": [
-                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
-                "[resourceId('Microsoft.Web/sites/functions', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness), format('{0}-fn-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]",
-                "[resourceId('Microsoft.Web/sites', format('{0}-fnApp-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
+                "[resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))]"
               ]
             },
             {
@@ -1183,7 +1181,7 @@
             },
             "myApiUrl1": {
               "type": "string",
-              "value": "[format('https://{0}/{1}/{2}', reference(resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness))).properties.hostnameConfigurations[0].hostName, format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount')]"
+              "value": "[format('{0}/{1}/{2}', reference(resourceId('Microsoft.ApiManagement/service', format('{0}-api-{1}', parameters('funcParams').funcNamePrefix, parameters('deploymentParams').global_uniqueness)), '2021-08-01').gatewayUrl, format('{0}-api-{1}', parameters('api_1_name'), parameters('deploymentParams').global_uniqueness), 'GetEventCount')]"
             }
           }
         }

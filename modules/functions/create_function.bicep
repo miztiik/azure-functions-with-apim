@@ -351,9 +351,10 @@ resource r_api_1 'Microsoft.ApiManagement/service/apis@2021-01-01-preview' = {
     displayName: 'Store Event Producer API'
     apiRevision: '1'
     description: 'Python based store events producer. Check out Github for more details'
-    serviceUrl: 'https://github.com/miztiik' //This is the backend URL
+    serviceUrl: 'https://github.com/miztiik' //This is the backend URL 
     // path: 'producer/store-events'
-    path: '${r_fnApp.name}/${r_fn_1.name}'
+    // path: '${r_fnApp.name}/${r_fn_1.name}'
+    path: '/'
     isCurrent: true
     subscriptionRequired: false
     protocols: [
@@ -627,4 +628,5 @@ output apiManagementURL string = r_apiMgmt.properties.portalUrl
 
 output ApiUrl string = r_api_1_Get_Operation.properties.urlTemplate
 
-output myApiUrl1 string = 'https://${reference(resourceId('Microsoft.ApiManagement/service', r_apiMgmt.name)).properties.hostnameConfigurations[0].hostName}/${r_api_1.name}/${r_api_1_Get_Operation.name}'
+output myApiUrl1 string = '${r_apiMgmt.properties.gatewayUrl}/${r_api_1.name}/${r_api_1_Get_Operation.name}'
+
